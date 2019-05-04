@@ -31,8 +31,7 @@ int sys_short_remaining_time(pid_t pid)
         return -EINVAL;
     }
     // calc remaining time in jiffies
-    //TODO: find how to go to the sched_param of the task
-    int requsted_time = jiffies - task->sched_param->requested_time;
+    int requsted_time = task->time_slice;
     //convert time to ms
     requsted_time = requsted_time * HZ / 1000;
     return requsted_time;	
@@ -53,15 +52,24 @@ int sys_short_place_in_queue(pid_t pid)
     if (current == pid) {
         return 0;
     }
-    // go to the ready to run list and scan it. count the short tasks 
+    //go to the ready to run list and scan it. count the short tasks 
     int counter = 0;
+    int array_prio = 0;
     struct runqueue run_list = task_rq(task);
-    // TODO: init next to the first task in the list 
-    // struct task_struct* next = run_list->;
-    while (task != next) {
-        // TODO: if the task is short -> counter++
-        // TODO: update next to the next task to run
+    //init next to the first task in the list 
+    struct task_struct* next_task_to_run = run_list->queue[0];
+    while (task != next && array_prio < MAX_PRIO) {
+        // if the task is short -> counter++
+        if (next_task_to_run->prio == SCHED_SHORT) {
+            counter++;
+        }
+        //update the next task to run
+        next_task_to_run = next_task_to_run->next;
+        //if we finished this prios list go to the next prio
+        if (next_task_to_run == NULL && array_prio < MAX_PRIO -1 ) {
+            array_prio++;
+            next_task_to_run = run_list->queue[array_prio];
+        }
     }
-
     return counter;	
 }
