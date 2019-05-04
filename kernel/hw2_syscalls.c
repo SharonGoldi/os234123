@@ -1,8 +1,13 @@
 #include "hw2_syscalls.h"
+#include "sched.h" 
+#include <linux/slab.h>
+#include <asm/uaccess.h> 
+#include <linux/kernel.h>
+#include <linux/timer.h>
 
 int sys_is_short(pid_t pid)
 {
-    pid_t* task = find_task_by_pid(pid);
+    struct task_struct* task = find_task_by_pid(pid);
     //check - legal pid
     if(task == NULL) {
         return -ESRCH;
@@ -16,7 +21,7 @@ int sys_is_short(pid_t pid)
 
 int sys_short_remaining_time(pid_t pid)
 {
-    pid_t* task = find_task_by_pid(pid);
+    struct task_struct* task = find_task_by_pid(pid);
     //check - legal pid
     if(task == NULL) {
         return -ESRCH;
@@ -36,7 +41,7 @@ int sys_short_remaining_time(pid_t pid)
 int sys_short_place_in_queue(pid_t pid)
 {
     //check - legal pid
-    pid_t* task = find_task_by_pid(pid);
+    struct task_struct* task = find_task_by_pid(pid);
     if(task == NULL) {
         return -ESRCH;
     }
@@ -48,8 +53,15 @@ int sys_short_place_in_queue(pid_t pid)
     if (current == pid) {
         return 0;
     }
-
+    // go to the ready to run list and scan it. count the short tasks 
     int counter = 0;
-    
+    struct runqueue run_list = task_rq(task);
+    // TODO: init next to the first task in the list 
+    // struct task_struct* next = run_list->;
+    while (task != next) {
+        // TODO: if the task is short -> counter++
+        // TODO: update next to the next task to run
+    }
+
     return counter;	
 }
