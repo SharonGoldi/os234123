@@ -199,8 +199,8 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 {
 	struct task_struct *p;
 	int error;
-
-	if (which > 2 || which < 0)
+//HW2 CHANGE
+	if ( (which != 5 && which > 2) || which < 0)
 		return -EINVAL;
 
 	/* normalize: avoid signed division (rounding problems) */
@@ -779,7 +779,7 @@ asmlinkage long sys_setfsuid(uid_t uid)
 }
 
 /*
- * Samma på svenska..
+ * Samma p? svenska..
  */
 asmlinkage long sys_setfsgid(gid_t gid)
 {

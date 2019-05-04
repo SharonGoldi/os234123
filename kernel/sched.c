@@ -1131,6 +1131,9 @@ static inline task_t *find_process_by_pid(pid_t pid)
 
 static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 {
+//TODO:	if(policy == SCHED_SHORT) 
+
+
 	struct sched_param lp;
 	int retval = -EINVAL;
 	prio_array_t *array;

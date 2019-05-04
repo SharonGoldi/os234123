@@ -119,9 +119,12 @@ extern unsigned long nr_uninterruptible(void);
 #define SCHED_OTHER		0
 #define SCHED_FIFO		1
 #define SCHED_RR		2
+#define SCHED_SHORT 	5
 
 struct sched_param {
-	int sched_priority;
+	int sched_priority;// ignored for SHORT processes
+	int requested_time;// between 1 and 3000
+	int sched_short_prio;// between 0 and 139
 };
 
 struct completion;
