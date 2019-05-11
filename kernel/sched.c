@@ -261,7 +261,14 @@ static inline int effective_prio(task_t *p)
 static inline void activate_task(task_t *p, runqueue_t *rq)
 {
 	unsigned long sleep_time = jiffies - p->sleep_timestamp;
-	prio_array_t *array = rq->active;
+	prio_array_t *array;
+	// HW2 add
+	if (p->policy == SCHED_SHORT) {
+		array = rq->short_active;
+	} else {
+		array = rq->active;
+	}
+	// HW2 add ended
 
 	if (!rt_task(p) && sleep_time) {
 		/*
