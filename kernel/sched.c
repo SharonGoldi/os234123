@@ -434,7 +434,9 @@ void wake_up_forked_process(task_t * p)
 void sched_exit(task_t * p)
 {
 	__cli();
-	if (p->first_time_slice) {
+	// HW2 add
+	if (p->first_time_slice && p->policy != SCHED_SHORT && current->policy != SCHED_SHORT) {
+	// HW2 add ended
 		current->time_slice += p->time_slice;
 		if (unlikely(current->time_slice > MAX_TIMESLICE))
 			current->time_slice = MAX_TIMESLICE;
