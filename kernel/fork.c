@@ -591,7 +591,7 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	if (current->policy == SCHED_SHORT) {
 		return -EPERM;
 	}
-	// HW2 add ended
+	// HW2 add ended.
 
 	int retval;
 	unsigned long flags;

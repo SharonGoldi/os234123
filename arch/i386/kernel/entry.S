@@ -652,7 +652,7 @@ ENTRY(sys_call_table)
 
 	.long SYMBOL_NAME(sys_is_short) /* 243 */
 	.long SYMBOL_NAME(sys_short_remaining_time)
-	.long SYMBOL_NAME(sys_short_place_in_queue)
+	.long SYMBOL_NAME(sys_short_place_in_queue) /* 245 */
 
 
 
