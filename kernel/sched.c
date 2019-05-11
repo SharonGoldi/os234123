@@ -1254,7 +1254,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	else {
 		retval = -EINVAL;
 		if (policy != SCHED_FIFO && policy != SCHED_RR &&
-				policy != SCHED_OTHER)
+				policy != SCHED_OTHER && policy != SCHED_SHORT)
 			goto out_unlock;
 	}
 
@@ -1368,12 +1368,10 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	if (!p)
 		goto out_unlock;
 	// HW2 add
-	if (p->policy == SCHED_SHORT) {
-		lp.sched_short_prio = p->prio;
-		lp.requested_time = p->short_requested_time; 
-	} else {
-		lp.sched_priority = p->rt_priority;
-	}
+	lp.sched_short_prio = p->prio;
+	lp.requested_time = p->short_requested_time; 
+	lp.sched_priority = p->rt_priority;
+	
 	// HW2 add ended
 	read_unlock(&tasklist_lock);
 
