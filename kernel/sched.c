@@ -763,7 +763,7 @@ void scheduler_tick(int user_tick, int system)
 	kstat.per_cpu_system[cpu] += system;
 
 	/* Task might have expired already, but not scheduled off yet */
-	if (p->array != rq->active) {
+	if (p->array != rq->active && p->array != rq->short_active) {
 		set_tsk_need_resched(p);
 		return;
 	}
@@ -794,6 +794,10 @@ void scheduler_tick(int user_tick, int system)
 	 */
 	if (p->sleep_avg)
 		p->sleep_avg--;
+
+	if (p->policy == SCHED_SHORT) {
+		//printk("WOW, short process %d is running", p->pid);
+	}
 	if (!--p->time_slice) {
 		// HW2 add
 		if (p->policy == SCHED_SHORT) {
@@ -901,7 +905,7 @@ pick_next_task:
 
 	idx = sched_find_first_bit(array->bitmap);
 	// HW2 add
-	if (idx >= MAX_RT_PRIO) {
+	if (idx > MAX_RT_PRIO - 1) {
 		int short_idx = sched_find_first_bit(rq->short_active->bitmap);
 		if (short_idx < MAX_PRIO){
 			idx = short_idx;
@@ -2082,21 +2086,21 @@ int sys_short_place_in_queue(pid_t pid) {
 	struct list_head *pos;
 	list_t *queue;
 
-	unsigned long *flags;
-	runqueue_t *rq = task_rq_lock(task, flags);
+	unsigned long flags;
+	runqueue_t *rq = task_rq_lock(task, &flags);
 
 	for (array_prio = 0; array_prio < task->prio + 1; array_prio++) {
-		queue = task->array->queue + array_prio;
+		queue = rq->short_active->queue + array_prio;
 		list_for_each(pos, queue) {
 			if (list_entry(pos, task_t, run_list)->pid == pid) {
-				task_rq_unlock(rq, flags);
+				task_rq_unlock(rq, &flags);
 				return counter;
 			} else {
 				counter++;
 			}
 		}
 	}
-	task_rq_unlock(rq, flags);
+	task_rq_unlock(rq, &flags);
 	return counter;
 }
 // HW2 add ended (super add)
