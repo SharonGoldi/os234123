@@ -1136,6 +1136,12 @@ asmlinkage long sys_nice(int increment)
  */
 int task_prio(task_t *p)
 {
+	// HW2 add
+	if (p->policy == SCHED_SHORT) {
+		return p->prio;
+	}
+	// HW2 add ended
+
 	return p->prio - MAX_USER_RT_PRIO;
 }
 
@@ -1166,9 +1172,10 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	runqueue_t *rq;
 	task_t *p;
 
+
 	if (!param || pid < 0)
 		goto out_nounlock;
-
+	
 	retval = -EFAULT;
 	if (copy_from_user(&lp, param, sizeof(struct sched_param)))
 		goto out_nounlock;
@@ -1177,7 +1184,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 * We play safe to avoid deadlocks.
 	 */
 	read_lock_irq(&tasklist_lock);
-
+	
 	p = find_process_by_pid(pid);
 
 	retval = -ESRCH;
