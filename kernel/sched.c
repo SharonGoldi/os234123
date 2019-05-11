@@ -228,6 +228,12 @@ static inline void enqueue_task(struct task_struct *p, prio_array_t *array)
 
 static inline int effective_prio(task_t *p)
 {
+	// HW2 add
+	if (p->policy == SCHED_SHORT) {
+		return p->prio;
+	}
+	// HW2 add ended
+
 	int bonus, prio;
 
 	/*
