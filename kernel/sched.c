@@ -790,18 +790,40 @@ void scheduler_tick(int user_tick, int system)
 	if (p->sleep_avg)
 		p->sleep_avg--;
 	if (!--p->time_slice) {
-		dequeue_task(p, rq->active);
-		set_tsk_need_resched(p);
-		p->prio = effective_prio(p);
-		p->first_time_slice = 0;
-		p->time_slice = TASK_TIMESLICE(p);
+		// HW2 add
+		if (p->policy == SCHED_SHORT) {
+			dequeue_task(p, rq->short_active);
+			set_tsk_need_resched(p);
 
-		if (!TASK_INTERACTIVE(p) || EXPIRED_STARVING(rq)) {
-			if (!rq->expired_timestamp)
-				rq->expired_timestamp = jiffies;
-			enqueue_task(p, rq->expired);
-		} else
+			// punishments
+			p->policy = SCHED_OTHER;
+			p->static_prio = min(p->static_prio + 7 , MAX_PRIO - 1);
+			p->sleep_avg = 0.5*MAX_SLEEP_AVG;
+
+			// recalc effective 
+			p->prio = effective_prio(p);
+			p->first_time_slice = 0;
+			p->rt_priority = 0;
+			p->time_slice = TASK_TIMESLICE(p);
+			
+			// place the task in active
 			enqueue_task(p, rq->active);
+			// HW2 add ended
+		} else {
+			dequeue_task(p, rq->active);
+			set_tsk_need_resched(p);
+
+			p->prio = effective_prio(p);
+			p->first_time_slice = 0;
+			p->time_slice = TASK_TIMESLICE(p);
+
+			if (!TASK_INTERACTIVE(p) || EXPIRED_STARVING(rq)) {
+				if (!rq->expired_timestamp)
+					rq->expired_timestamp = jiffies;
+				enqueue_task(p, rq->expired);
+			} else
+				enqueue_task(p, rq->active);
+		}
 	}
 out:
 #if CONFIG_SMP
