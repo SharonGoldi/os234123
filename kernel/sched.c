@@ -1367,7 +1367,14 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock;
-	lp.sched_priority = p->rt_priority;
+	// HW2 add
+	if (p->policy == SCHED_SHORT) {
+		lp.sched_short_prio = p->prio;
+		lp.requested_time = p->short_requested_time; 
+	} else {
+		lp.sched_priority = p->rt_priority;
+	}
+	// HW2 add ended
 	read_unlock(&tasklist_lock);
 
 	/*
