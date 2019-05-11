@@ -199,10 +199,10 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 {
 	struct task_struct *p;
 	int error;
-//HW2 CHANGE
+// HW2 add
 	if ( (which != 5 && which > 2) || which < 0)
 		return -EINVAL;
-
+// HW2 add ended
 	/* normalize: avoid signed division (rounding problems) */
 	error = -ESRCH;
 	if (niceval < -20)
@@ -219,6 +219,12 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 			error = -EPERM;
 			continue;
 		}
+		// HW2 add
+		if (p->policy == SCHED_SHORT) {
+			error = -EPERM;
+			continue;
+		}
+		// HW2 add ended
 		if (error == -ESRCH)
 			error = 0;
 		if (niceval < task_nice(p) && !capable(CAP_SYS_NICE))

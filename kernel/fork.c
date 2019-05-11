@@ -587,10 +587,11 @@ static inline void copy_flags(unsigned long clone_flags, struct task_struct *p)
 int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	    struct pt_regs *regs, unsigned long stack_size)
 {
-	//HW2 CHANGE
+	// HW2 add
 	if (current->policy == SCHED_SHORT) {
 		return -EPERM;
 	}
+	// HW2 add ended
 
 	int retval;
 	unsigned long flags;

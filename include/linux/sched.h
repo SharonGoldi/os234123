@@ -454,6 +454,10 @@ struct task_struct {
 
 /* journalling filesystem info */
 	void *journal_info;
+
+	// HW2 add
+	unsigned int short_requested_time;
+	// HW2 add ended
 };
 
 /*
@@ -559,6 +563,7 @@ extern struct exec_domain	default_exec_domain;
     blocked:		{{0}},						\
     alloc_lock:		SPIN_LOCK_UNLOCKED,				\
     journal_info:	NULL,						\
+	short_requested_time:	0,					\
 }
 
 
