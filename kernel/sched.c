@@ -118,6 +118,11 @@
 
 #define BITMAP_SIZE ((((MAX_PRIO+1+7)/8)+sizeof(long)-1)/sizeof(long))
 
+#define MIN_REQUESTED_TIME 1
+#define MAX_REQUESTED_TIME 3000
+#define MIN_SHORT_PRIO 0
+#define MAX_SHORT_PRIO 139
+
 typedef struct runqueue runqueue_t;
 
 struct prio_array {
@@ -1182,9 +1187,18 @@ static inline task_t *find_process_by_pid(pid_t pid)
 	return pid ? find_task_by_pid(pid) : current;
 }
 
+// HW2 add
+unsigned int calc_short_time_slice(int requested_time) {
+	unsigned int time_in_ticks = requested_time * HZ/1000;
+	if (time_in_ticks == 0) {
+		time_in_ticks = 1;
+	}
+	return time_in_ticks;
+}
+// HW2 add ended
+
 static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 {
-//TODO:	if(policy == SCHED_SHORT) 
 
 
 	struct sched_param lp;
@@ -1233,12 +1247,29 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_OTHER is 0.
 	 */
 	retval = -EINVAL;
-	if (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1)
+	// HW2 add
+	if(policy == SCHED_SHORT) {
+		if (lp.requested_time < MIN_REQUESTED_TIME || lp.requested_time > MAX_REQUESTED_TIME ||
+			lp.sched_short_prio < MIN_SHORT_PRIO || lp.sched_short_prio > MAX_SHORT_PRIO) {
+				goto out_unlock_tasklist;
+		}
+	}
+
+	if (policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1))
 		goto out_unlock;
-	if ((policy == SCHED_OTHER) != (lp.sched_priority == 0))
+	if (policy != SCHED_SHORT && ((policy == SCHED_OTHER) != (lp.sched_priority == 0)))
 		goto out_unlock;
+	// HW2 add ended
 
 	retval = -EPERM;
+	// HW2 add
+	if(p->policy == SCHED_SHORT)
+		goto out_nounlock;
+
+	if (policy == SCHED_SHORT && (p->policy == SCHED_RR || p->policy == SCHED_FIFO))
+		goto out_unlock;
+	// HW2 add ended
+
 	if ((policy == SCHED_FIFO || policy == SCHED_RR) &&
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
@@ -1246,18 +1277,26 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
 
-	array = p->array;
+	array = p->array; // TODO: change a task from other to short if he wants to
 	if (array)
-		deactivate_task(p, task_rq(p));
+		deactivate_task(p, task_rq(p)); 
 	retval = 0;
 	p->policy = policy;
 	p->rt_priority = lp.sched_priority;
-	if (policy != SCHED_OTHER)
+	// HW2 add
+	if (policy == SCHED_SHORT) {
+		p->prio = lp.sched_short_prio;
+		p->time_slice = calc_short_timeslice(lp.requested_time);
+		p->short_requested_time = lp.requested_time;
+		set_tsk_need_resched(current);
+	}
+	// HW2 add ended
+	else if (policy != SCHED_OTHER)
 		p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
 	else
 		p->prio = p->static_prio;
 	if (array)
-		activate_task(p, task_rq(p));
+		activate_task(p, task_rq(p)); 
 
 out_unlock:
 	task_rq_unlock(rq, &flags);
