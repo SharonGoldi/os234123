@@ -1052,6 +1052,12 @@ void scheduling_functions_end_here(void) { }
 
 void set_user_nice(task_t *p, long nice)
 {
+	// HW2 add
+	if (p->policy == SCHED_SHORT) {
+		return;
+	}
+	// HW2 add ended
+
 	unsigned long flags;
 	prio_array_t *array;
 	runqueue_t *rq;
