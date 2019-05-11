@@ -900,6 +900,15 @@ pick_next_task:
 	}
 
 	idx = sched_find_first_bit(array->bitmap);
+	// HW2 add
+	if (idx >= MAX_RT_PRIO) {
+		int short_idx = sched_find_first_bit(rq->short_active->bitmap);
+		if (short_idx < MAX_PRIO){
+			idx = short_idx;
+			array = rq->short_active;
+		}
+	}
+	// HW2 add ended
 	queue = array->queue + idx;
 	next = list_entry(queue->next, task_t, run_list);
 
