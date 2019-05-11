@@ -1926,3 +1926,75 @@ struct low_latency_enable_struct __enable_lowlatency = { 0, };
 
 #endif	/* LOWLATENCY_NEEDED */
 
+// HW2 add (super add)
+int is_short_task(struct task_struct* task) {
+	return task->policy == SCHED_SHORT;
+}
+
+int sys_is_short(pid_t pid) {
+    struct task_struct* task = find_task_by_pid(pid);
+    //check - legal pid
+    if (task == NULL) {
+        return -ESRCH;
+    }
+    // check if policy is short
+    return is_short_task(task);
+}
+
+int sys_short_remaining_time(pid_t pid) {
+    struct task_struct* task = find_task_by_pid(pid);
+    //check - legal pid
+    if (task == NULL) {
+        return -ESRCH;
+    }
+    //check - this is a task with short prio
+    if (!is_short_task(task)) {
+        return -EINVAL;
+    }
+    // calc remaining time in ms
+    int remaining_time = task->time_slice * 1000/HZ;
+
+	if (remaining_time > task->short_requested_time) {
+		remaining_time = tsk->short_requested_time;
+	}
+    return remaining_time;	
+}
+
+int sys_short_place_in_queue(pid_t pid) {
+    //check - legal pid
+    struct task_struct* task = find_task_by_pid(pid);
+    if(task == NULL) {
+        return -ESRCH;
+    }
+    //check - a short task
+    if(!is_short_task(task))) {
+        return -EINVAL;
+    }
+    //if the current task checks itself return 0
+    if (current->pid == pid) {
+        return 0;
+    }
+    //go to the ready to run list and scan it. count the short tasks 
+	int counter = 0;
+    int array_prio;
+	struct list_head *pos;
+	list_t *queue;
+
+	unsigned long *flags;
+	runqueue_t *rq = task_rq_lock(task, flags);
+
+	for (array_prio = 0; array_prio < task->prio + 1; array_prio++) {
+		queue = task->array->queue + array_prio;
+		list_for_each(pos, queue) {
+			if (list_entry(pos, task_t, run_list)->pid == pid) {
+				task_rq_unlock(rq, flags);
+				return counter;
+			} else {
+				counter++;
+			}
+		}
+	}
+	task_rq_unlock(rq, flags);
+	return counter;
+}
+// HW2 add ended (super add)
