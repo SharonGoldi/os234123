@@ -1302,7 +1302,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	// HW2 add
 	if (policy == SCHED_SHORT) {
 		p->prio = lp.sched_short_prio;
-		p->time_slice = calc_short_timeslice(lp.requested_time);
+		p->time_slice = calc_short_time_slice(lp.requested_time);
 		p->short_requested_time = lp.requested_time;
 		set_tsk_need_resched(current);
 	}
@@ -2059,7 +2059,7 @@ int sys_short_remaining_time(pid_t pid) {
     int remaining_time = task->time_slice * 1000/HZ;
 
 	if (remaining_time > task->short_requested_time) {
-		remaining_time = tsk->short_requested_time;
+		remaining_time = task->short_requested_time;
 	}
     return remaining_time;	
 }
@@ -2071,7 +2071,7 @@ int sys_short_place_in_queue(pid_t pid) {
         return -ESRCH;
     }
     //check - a short task
-    if(!is_short_task(task))) {
+    if(!is_short_task(task)) {
         return -EINVAL;
     }
     //if the current task checks itself return 0
